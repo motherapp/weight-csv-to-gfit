@@ -70,11 +70,9 @@ def import_weight_to_gfit():
       )
 
     def get_data_source_id(dataSource):
-      project_number = CLIENT_ID.split('-')[0]
       return ':'.join((
         dataSource['type'],
         dataSource['dataType']['name'],
-        project_number,
         dataSource['device']['manufacturer'],
         dataSource['device']['model'],
         dataSource['device']['uid']))
