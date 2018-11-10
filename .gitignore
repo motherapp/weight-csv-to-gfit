@@ -87,3 +87,9 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+# Secrets
+secrets.yml
+
+# macOS
+.DS_Store
