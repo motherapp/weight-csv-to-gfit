@@ -58,5 +58,3 @@ def read_activities_csv_with_gfit_format():
 
 if __name__=="__main__":
     gfit_activities = read_activities_csv_with_gfit_format()
-    for a in gfit_activities:
-        print a
