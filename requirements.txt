@@ -15,3 +15,4 @@ six==1.10.0
 uritemplate==0.6
 wrapt==1.10.8
 wsgiref==0.1.2
+pyyaml==3.13

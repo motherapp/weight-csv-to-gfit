@@ -4,6 +4,7 @@
 # 1. https://github.com/tantalor/fitsync
 # 2. http://www.ewhitling.com/2015/04/28/scrapping-data-from-google-fitness/
 import json
+import yaml
 import httplib2
 from apiclient.discovery import build
 
@@ -18,12 +19,14 @@ from googleapiclient.errors import HttpError
 # 1. Go https://console.developers.google.com/apis/credentials
 # 2. Create credentials => OAuth Client ID
 # 3. Set Redirect URI to your URL or the playground https://developers.google.com/oauthplayground
-CLIENT_ID = ''
-CLIENT_SECRET = ''
+secrets=yaml.load(open('../secrets.yml'))
+CLIENT_ID = secrets['client_id']
+CLIENT_SECRET = secrets['client_secret']
 
 # Redirect URI to google Fit, See Steps 3 above
 #REDIRECT_URI='https://developers.google.com/oauthplayground'
-REDIRECT_URI='http://localhost'
+REDIRECT_URI = secrets['redirect_uri']
+PROJECT_ID = secrets['project_id']
 
 # See scope here: https://developers.google.com/fit/rest/v1/authorization
 SCOPE = 'https://www.googleapis.com/auth/fitness.body.write'
@@ -32,7 +35,7 @@ SCOPE = 'https://www.googleapis.com/auth/fitness.body.write'
 # Steps:
 # 1. Go https://console.developers.google.com/apis/credentials
 # 2. Create credentials => API Key => Server Key
-API_KEY = ''
+API_KEY = secrets['fitness_api_key']
 
 def import_weight_to_gfit():
     # first step of auth
@@ -74,7 +77,7 @@ def import_weight_to_gfit():
       return ':'.join((
         dataSource['type'],
         dataSource['dataType']['name'],
-        'project-id',
+        PROJECT_ID,
         dataSource['device']['manufacturer'],
         dataSource['device']['model'],
         dataSource['device']['uid']
