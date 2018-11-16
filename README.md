@@ -1,15 +1,20 @@
-# weight-csv-to-gfit
-Load weights.csv and import to a Google Fit account
+# google-fit-data
+Load bulk weight/steps data to a Google Fit account
 
 ## Download and installation
 ```
-git clone https://github.com/motherapp/weight-csv-to-gfit.git
-cd weight-csv-to-gfit
-mkvirtualenv weight-csv-to-gfit
-pip install -r pip_requirements.txt
+git clone https://github.com/ryanpconnors/google-fit-data.git
+cd google-fit-data
+virtualenv -p /usr/bin/python2.7 venv
+pip install -r requirements.txt
 ```
 
-## Run
+## Import weight data into Google Fit
 ```
-python import_weight_to_gfit.py
+python weight/import_weight_to_gfit.py
+```
+
+## Import steps data into Google Fit
+```
+python steps/import_steps_to_gfit.py
 ```

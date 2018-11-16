@@ -1,39 +1,44 @@
 # -------------------------------------------------------------------------------
-# Purpose: Load weights.csv and import to a Google Fit account
+# Purpose: Load activities.csv and import to a Google Fit account
 # Some codes refer to:
 # 1. https://github.com/tantalor/fitsync
 # 2. http://www.ewhitling.com/2015/04/28/scrapping-data-from-google-fitness/
 import json
+import yaml
 import httplib2
 from apiclient.discovery import build
- 
+
 from oauth2client.file import Storage
 from oauth2client.client import AccessTokenRefreshError
 from oauth2client.client import OAuth2WebServerFlow
-from read_weight_csv import read_weights_csv_with_gfit_format
+from read_activities_csv import read_activities_csv_with_gfit_format
 from googleapiclient.errors import HttpError
 
 # Setup for Google API:
-# Steps: 
+# Steps:
 # 1. Go https://console.developers.google.com/apis/credentials
 # 2. Create credentials => OAuth Client ID
 # 3. Set Redirect URI to your URL or the playground https://developers.google.com/oauthplayground
-CLIENT_ID = 'SETUP_AS_ABOVE'
-CLIENT_SECRET = 'SETUP_AS_ABOVE'
- 
+secrets=yaml.load(open('../secrets.yml'))
+CLIENT_ID = secrets['client_id']
+CLIENT_SECRET = secrets['client_secret']
+
 # Redirect URI to google Fit, See Steps 3 above
-REDIRECT_URI='https://developers.google.com/oauthplayground'
+#REDIRECT_URI='https://developers.google.com/oauthplayground'
+REDIRECT_URI = secrets['redirect_uri']
+
+PROJECT_ID = secrets['project_id']
 
 # See scope here: https://developers.google.com/fit/rest/v1/authorization
-SCOPE = 'https://www.googleapis.com/auth/fitness.body.write'
+SCOPE = 'https://www.googleapis.com/auth/fitness.activity.write'
 
 # API Key
-# Steps: 
+# Steps:
 # 1. Go https://console.developers.google.com/apis/credentials
 # 2. Create credentials => API Key => Server Key
-API_KEY = 'SETUP_AS_ABOVE'
+API_KEY = secrets['fitness_api_key']
 
-def import_weight_to_gfit():
+def import_activities_to_gfit():
     # first step of auth
     # only approved IP is my Digital Ocean Server
     flow = OAuth2WebServerFlow(client_id=CLIENT_ID, client_secret=CLIENT_SECRET, scope=SCOPE, redirect_uri=REDIRECT_URI)
@@ -41,7 +46,7 @@ def import_weight_to_gfit():
     print "Copy this url to web browser for authorization: "
     print auth_uri
 
-    # hmm, had to manually pull this as part of a Google Security measure. 
+    # hmm, had to manually pull this as part of a Google Security measure.
     # there must be a way to programatically get this, but this exercise doesn't need it ... yet...
     token = raw_input("Copy the token from URL and input here: ")
     cred = flow.step2_exchange(token)
@@ -55,16 +60,16 @@ def import_weight_to_gfit():
 
     data_source = dict(
         type='raw',
-        application=dict(name='maweightimport'),
+        application=dict(name='activities_import'),
         dataType=dict(
-          name='com.google.weight',
-          field=[dict(format='floatPoint', name='weight')]
+          name='com.google.activity.segment',
+          field=[dict(format='integer', name='activity')]
         ),
         device=dict(
-          type='scale',
-          manufacturer='unknown',
-          model='unknown',
-          uid='maweightimport',
+          type='phone',
+          manufacturer='google',
+          model='pixel-2xl',
+          uid='2',
           version='1.0',
         )
       )
@@ -73,11 +78,14 @@ def import_weight_to_gfit():
       return ':'.join((
         dataSource['type'],
         dataSource['dataType']['name'],
+        PROJECT_ID,
         dataSource['device']['manufacturer'],
         dataSource['device']['model'],
-        dataSource['device']['uid']))
+        dataSource['device']['uid']
+        ))
 
     data_source_id = get_data_source_id(data_source)
+
     # Ensure datasource exists for the device.
     try:
         fitness_service.users().dataSources().get(
@@ -91,9 +99,9 @@ def import_weight_to_gfit():
             userId='me',
             body=data_source).execute()
 
-    weights = read_weights_csv_with_gfit_format()
-    min_log_ns = weights[0]["startTimeNanos"]
-    max_log_ns = weights[-1]["startTimeNanos"]
+    activities = read_activities_csv_with_gfit_format()
+    min_log_ns = activities[0]["startTimeNanos"]
+    max_log_ns = str(int(activities[-1]["endTimeNanos"]))
     dataset_id = '%s-%s' % (min_log_ns, max_log_ns)
 
     # patch data to google fit
@@ -103,9 +111,9 @@ def import_weight_to_gfit():
       datasetId=dataset_id,
       body=dict(
         dataSourceId=data_source_id,
-        maxEndTimeNs=max_log_ns,
         minStartTimeNs=min_log_ns,
-        point=weights,
+        maxEndTimeNs=max_log_ns,
+        point=activities,
       )).execute()
 
     # read data to verify
@@ -115,4 +123,4 @@ def import_weight_to_gfit():
         datasetId=dataset_id).execute()
 
 if __name__=="__main__":
-    import_weight_to_gfit()
+    import_activities_to_gfit()

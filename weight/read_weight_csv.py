@@ -5,7 +5,7 @@ import dateutil.parser
 from dateutil import zoneinfo
 
 DAWN_TIME = datetime.datetime(1970, 1, 1, tzinfo=dateutil.tz.tzutc())
-TIME_ZONE = zoneinfo.gettz("Asia/Hong_Kong")
+TIME_ZONE = zoneinfo.gettz("America/New_York")
 POUNDS_PER_KILOGRAM = 2.20462
 
 def nano(val):
@@ -46,4 +46,3 @@ def read_weights_csv_with_gfit_format():
 
 if __name__=="__main__":
     gfit_weights = read_weights_csv_with_gfit_format()
-    print gfit_weights[0]
